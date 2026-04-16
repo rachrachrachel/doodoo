@@ -14,6 +14,7 @@ function useSupabaseSync() {
   const { user, isSignedIn, isLoaded } = useUser()
   const { getToken } = useClerkAuth()
   const [ready, setReady] = useState(false)
+  const [syncError, setSyncError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isLoaded) return
@@ -25,38 +26,54 @@ function useSupabaseSync() {
     }
 
     async function sync() {
-      const token = await getToken({ template: 'supabase' })
-      setSupabaseToken(token)
+      try {
+        const token = await getToken({ template: 'supabase' })
+        console.log('[Supabase sync] token:', token ? `${token.slice(0, 20)}...` : 'NULL')
 
-      await supabase.from('users').upsert(
-        {
-          id: user!.id,
-          email: user!.primaryEmailAddress?.emailAddress ?? '',
-          full_name: user!.fullName,
-          avatar_url: user!.imageUrl,
-        },
-        { onConflict: 'id' }
-      )
+        if (!token) {
+          console.error('[Supabase sync] getToken returned null — verifica el JWT template "supabase" en Clerk')
+          setSyncError('No se pudo obtener el token de autenticación.')
+          return
+        }
 
-      setReady(true)
+        setSupabaseToken(token)
+
+        const { error: upsertError } = await supabase.from('users').upsert(
+          {
+            id: user!.id,
+            email: user!.primaryEmailAddress?.emailAddress ?? '',
+            full_name: user!.fullName,
+            avatar_url: user!.imageUrl,
+          },
+          { onConflict: 'id' }
+        )
+
+        if (upsertError) {
+          console.error('[Supabase sync] upsert users error:', upsertError.message)
+        }
+
+        setReady(true)
+      } catch (err) {
+        console.error('[Supabase sync] error:', err)
+        setSyncError('Error al conectar con la base de datos.')
+      }
     }
 
     sync()
 
-    // Renueva el token cada 55 segundos (expira en 60s)
     const interval = setInterval(async () => {
       const token = await getToken({ template: 'supabase' })
-      setSupabaseToken(token)
+      if (token) setSupabaseToken(token)
     }, 55_000)
 
     return () => clearInterval(interval)
   }, [isLoaded, isSignedIn, user?.id])
 
-  return { ready, isSignedIn, isLoaded }
+  return { ready, isSignedIn, isLoaded, syncError }
 }
 
 function AppContent() {
-  const { ready, isSignedIn, isLoaded } = useSupabaseSync()
+  const { ready, isSignedIn, isLoaded, syncError } = useSupabaseSync()
 
   // Muestra nada mientras Clerk carga
   if (!isLoaded) return null
@@ -88,7 +105,11 @@ function AppContent() {
             </SignedOut>
             <SignedIn>
               {/* Espera a que el token esté listo antes de renderizar */}
-              {ready ? (
+              {syncError ? (
+                <div className="min-h-screen bg-cream flex items-center justify-center">
+                  <span className="font-body text-red-500 text-sm">{syncError}</span>
+                </div>
+              ) : ready ? (
                 <Shell>
                   <Routes>
                     <Route path="/" element={<BoardsPage />} />
