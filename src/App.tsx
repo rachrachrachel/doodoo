@@ -74,7 +74,7 @@ function useSupabaseSync() {
 }
 
 function AppContent() {
-  const { ready, isSignedIn, isLoaded, syncError } = useSupabaseSync()
+  const { ready, isLoaded, syncError } = useSupabaseSync()
 
   // Muestra nada mientras Clerk carga
   if (!isLoaded) return null

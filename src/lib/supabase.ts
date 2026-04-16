@@ -16,7 +16,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     fetch: async (input, init = {}) => {
       const headers = new Headers(init.headers)
       if (clerkToken) {
-        headers.set('Authorization', `Bearer ${clerkToken}`)
+        headers.set('X-Clerk-Token', clerkToken)
       }
       return fetch(input, { ...init, headers })
     },
