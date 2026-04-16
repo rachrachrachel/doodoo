@@ -32,7 +32,7 @@ function useSupabaseSync() {
 
         if (!token) {
           console.error('[Supabase sync] getToken returned null — verifica el JWT template "supabase" en Clerk')
-          setSyncError('No se pudo obtener el token de autenticación.')
+          setSyncError('Token null. Verifica el JWT template en Clerk.')
           return
         }
 
@@ -49,13 +49,14 @@ function useSupabaseSync() {
         )
 
         if (upsertError) {
-          console.error('[Supabase sync] upsert users error:', upsertError.message)
+          console.error('[Supabase sync] upsert error:', upsertError.message)
         }
 
         setReady(true)
-      } catch (err) {
-        console.error('[Supabase sync] error:', err)
-        setSyncError('Error al conectar con la base de datos.')
+      } catch (err: any) {
+        const msg = err?.message ?? String(err)
+        console.error('[Supabase sync] excepción:', msg)
+        setSyncError(`Error de auth: ${msg}`)
       }
     }
 
