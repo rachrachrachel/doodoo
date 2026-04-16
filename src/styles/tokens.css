@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Sans:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Palette */
+  --color-accent-yellow: #F2E840;
+  --color-accent-lila: #D4B8F0;
+  --color-accent-rose: #F0B8D0;
+  --color-cream: #F5F3EE;
+  --color-surface: #FFFFFF;
+  --color-ink: #111111;
+
+  /* Typography */
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+
+  /* Spacing */
+  --radius-card: 16px;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 4px 20px rgba(0, 0, 0, 0.10);
+
+  /* Transitions */
+  --duration-hover: 100ms;
+  --duration-card: 200ms;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+}
