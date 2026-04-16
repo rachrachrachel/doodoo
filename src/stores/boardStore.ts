@@ -89,6 +89,14 @@ export const useBoardStore = create<BoardState>((set) => ({
       .single()
 
     if (error) throw new Error(error.message)
+
+    // Agrega al owner como miembro del board
+    await supabase.from('board_members').insert({
+      board_id: board.id,
+      user_id: data.owner_id,
+      role: 'owner',
+    })
+
     set((s) => ({ boards: [board, ...s.boards] }))
     return board
   },
