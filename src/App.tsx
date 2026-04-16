@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { SignedIn, SignedOut, useUser, useAuth as useClerkAuth } from '@clerk/clerk-react'
 import { Shell } from '@/components/layout/Shell'
@@ -8,23 +8,26 @@ import { SignInPage } from '@/pages/SignInPage'
 import { SignUpPage } from '@/pages/SignUpPage'
 import { supabase, setSupabaseToken } from '@/lib/supabase'
 
-// Sincroniza el token de Clerk con el cliente Supabase y upsertea el usuario
-function SupabaseAuthSync() {
-  const { user, isSignedIn } = useUser()
+// Sincroniza el token de Clerk con el cliente Supabase y upsertea el usuario.
+// Retorna `ready` = true sólo cuando el token ya está seteado.
+function useSupabaseSync() {
+  const { user, isSignedIn, isLoaded } = useUser()
   const { getToken } = useClerkAuth()
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    if (!isLoaded) return
+
     if (!isSignedIn || !user) {
       setSupabaseToken(null)
+      setReady(false)
       return
     }
 
     async function sync() {
-      // Obtiene el JWT de Clerk firmado con el secret de Supabase
       const token = await getToken({ template: 'supabase' })
       setSupabaseToken(token)
 
-      // Upsert del usuario en Supabase
       await supabase.from('users').upsert(
         {
           id: user!.id,
@@ -34,6 +37,8 @@ function SupabaseAuthSync() {
         },
         { onConflict: 'id' }
       )
+
+      setReady(true)
     }
 
     sync()
@@ -45,51 +50,68 @@ function SupabaseAuthSync() {
     }, 55_000)
 
     return () => clearInterval(interval)
-  }, [isSignedIn, user?.id])
+  }, [isLoaded, isSignedIn, user?.id])
 
-  return null
+  return { ready, isSignedIn, isLoaded }
 }
 
-export function App() {
+function AppContent() {
+  const { ready, isSignedIn, isLoaded } = useSupabaseSync()
+
+  // Muestra nada mientras Clerk carga
+  if (!isLoaded) return null
+
   return (
-    <BrowserRouter>
-      <SupabaseAuthSync />
-      <Routes>
-        <Route
-          path="/sign-in"
-          element={
+    <Routes>
+      <Route
+        path="/sign-in"
+        element={
+          <SignedOut>
+            <SignInPage />
+          </SignedOut>
+        }
+      />
+      <Route
+        path="/sign-up"
+        element={
+          <SignedOut>
+            <SignUpPage />
+          </SignedOut>
+        }
+      />
+      <Route
+        path="/*"
+        element={
+          <>
             <SignedOut>
               <SignInPage />
             </SignedOut>
-          }
-        />
-        <Route
-          path="/sign-up"
-          element={
-            <SignedOut>
-              <SignUpPage />
-            </SignedOut>
-          }
-        />
-        <Route
-          path="/*"
-          element={
-            <>
-              <SignedOut>
-                <SignInPage />
-              </SignedOut>
-              <SignedIn>
+            <SignedIn>
+              {/* Espera a que el token esté listo antes de renderizar */}
+              {ready ? (
                 <Shell>
                   <Routes>
                     <Route path="/" element={<BoardsPage />} />
                     <Route path="/board/:boardId" element={<BoardPage />} />
                   </Routes>
                 </Shell>
-              </SignedIn>
-            </>
-          }
-        />
-      </Routes>
+              ) : (
+                <div className="min-h-screen bg-cream flex items-center justify-center">
+                  <span className="font-body text-ink/40 text-sm">Cargando...</span>
+                </div>
+              )}
+            </SignedIn>
+          </>
+        }
+      />
+    </Routes>
+  )
+}
+
+export function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   )
 }
