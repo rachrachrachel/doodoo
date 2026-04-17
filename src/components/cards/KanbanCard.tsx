@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Calendar } from 'lucide-react'
+import { Calendar, Paperclip } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { ProgressBar } from '@/components/ui/Card'
 import { AvatarGroup } from '@/components/ui/Avatar'
@@ -32,6 +32,7 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
   const hasChecklist = card.checklist_items && card.checklist_items.length > 0
   const hasAssignees = card.assignees && card.assignees.length > 0
   const hasDueDate = !!card.due_date
+  const hasAttachments = card.attachments && card.attachments.length > 0
 
   const checklistCompleted = hasChecklist
     ? card.checklist_items.filter((item) => item.completed).length
@@ -72,23 +73,6 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
       {/* Title */}
       <p className="font-body text-sm text-ink line-clamp-2">{card.title}</p>
 
-      {/* Due date */}
-      {hasDueDate && (
-        <div
-          className={cn(
-            'flex items-center gap-1 mt-2',
-            isDueDateOverdue(card.due_date!)
-              ? 'text-red-500'
-              : 'text-ink/40'
-          )}
-        >
-          <Calendar size={12} />
-          <span className="font-body text-xs">
-            {formatDueDate(card.due_date!)}
-          </span>
-        </div>
-      )}
-
       {/* Progress bar */}
       {hasChecklist && (
         <div className="mt-2">
@@ -96,18 +80,39 @@ export function KanbanCard({ card, onClick }: KanbanCardProps) {
         </div>
       )}
 
-      {/* Assignees */}
-      {hasAssignees && (
-        <div className="mt-2 flex justify-end">
-          <AvatarGroup
-            users={card.assignees.map((u) => ({
-              id: u.id,
-              name: u.full_name,
-              avatar_url: u.avatar_url,
-            }))}
-            max={3}
-            size="sm"
-          />
+      {/* Footer: due date + attachments | assignees */}
+      {(hasDueDate || hasAttachments || hasAssignees) && (
+        <div className="mt-2.5 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {hasDueDate && (
+              <span
+                className={cn(
+                  'flex items-center gap-1 flex-shrink-0',
+                  isDueDateOverdue(card.due_date!) ? 'text-red-500' : 'text-ink/40'
+                )}
+              >
+                <Calendar size={11} />
+                <span className="font-body text-[11px]">{formatDueDate(card.due_date!)}</span>
+              </span>
+            )}
+            {hasAttachments && (
+              <span className="flex items-center gap-1 text-ink/35 flex-shrink-0">
+                <Paperclip size={11} />
+                <span className="font-body text-[11px]">{card.attachments!.length}</span>
+              </span>
+            )}
+          </div>
+          {hasAssignees && (
+            <AvatarGroup
+              users={card.assignees.map((u) => ({
+                id: u.id,
+                name: u.full_name,
+                avatar_url: u.avatar_url,
+              }))}
+              max={3}
+              size="sm"
+            />
+          )}
         </div>
       )}
     </motion.div>

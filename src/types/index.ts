@@ -9,11 +9,23 @@ export type Label = Database['public']['Tables']['labels']['Row']
 export type ChecklistItem = Database['public']['Tables']['checklist_items']['Row']
 export type ActivityLog = Database['public']['Tables']['activity_log']['Row']
 
+export interface CardAttachment {
+  id: string
+  card_id: string
+  name: string
+  url: string
+  size: number | null
+  mime_type: string | null
+  uploaded_by: string
+  created_at: string
+}
+
 // Extended types with relations
 export interface CardWithRelations extends Card {
   assignees: User[]
   labels: Label[]
   checklist_items: ChecklistItem[]
+  attachments?: CardAttachment[]
 }
 
 export interface ListWithCards extends List {

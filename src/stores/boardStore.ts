@@ -10,8 +10,8 @@ interface BoardState {
 
   fetchBoards: () => Promise<void>
   fetchBoard: (id: string) => Promise<void>
-  createBoard: (data: Pick<Board, 'title' | 'description' | 'cover_color'> & { owner_id: string }) => Promise<Board>
-  updateBoard: (id: string, data: Partial<Pick<Board, 'title' | 'description' | 'cover_color'>>) => Promise<void>
+  createBoard: (data: Pick<Board, 'title' | 'description' | 'cover_color'> & { owner_id: string; icon?: string | null }) => Promise<Board>
+  updateBoard: (id: string, data: Partial<Pick<Board, 'title' | 'description' | 'cover_color' | 'icon'>>) => Promise<void>
   deleteBoard: (id: string) => Promise<void>
 }
 
@@ -47,7 +47,8 @@ export const useBoardStore = create<BoardState>((set) => ({
             *,
             card_assignees ( users(*) ),
             card_labels ( labels(*) ),
-            checklist_items ( * )
+            checklist_items ( * ),
+            card_attachments ( id )
           )
         )
       `)
@@ -73,6 +74,7 @@ export const useBoardStore = create<BoardState>((set) => ({
             labels: (card.card_labels || [])
               .map((cl: any) => cl.labels)
               .filter(Boolean),
+            attachments: (card.card_attachments || []),
           })),
         })),
       }
@@ -106,6 +108,10 @@ export const useBoardStore = create<BoardState>((set) => ({
     if (error) throw new Error(error.message)
     set((s) => ({
       boards: s.boards.map((b) => (b.id === id ? { ...b, ...data } : b)),
+      currentBoard:
+        s.currentBoard?.id === id
+          ? { ...s.currentBoard, ...data }
+          : s.currentBoard,
     }))
   },
 

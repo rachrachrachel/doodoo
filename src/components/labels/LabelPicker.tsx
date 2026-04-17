@@ -96,8 +96,8 @@ export function LabelPicker({ cardId, boardId, cardLabels, boardLabels }: LabelP
               transition={{ duration: 0.15 }}
               className={cn(
                 'absolute left-0 top-full mt-1 z-50',
-                'w-64 bg-surface rounded-card shadow-card-hover',
-                'border border-ink/5 overflow-hidden'
+                'w-72 bg-surface rounded-card shadow-card-hover',
+                'border border-ink/5'
               )}
             >
               <AnimatePresence mode="wait">

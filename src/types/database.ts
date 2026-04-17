@@ -32,6 +32,7 @@ export interface Database {
           title: string
           description: string | null
           cover_color: string
+          icon: string | null
           owner_id: string
           created_at: string
         }
@@ -40,6 +41,7 @@ export interface Database {
           title: string
           description?: string | null
           cover_color?: string
+          icon?: string | null
           owner_id: string
           created_at?: string
         }
@@ -47,6 +49,7 @@ export interface Database {
           title?: string
           description?: string | null
           cover_color?: string
+          icon?: string | null
         }
         Relationships: []
       }
@@ -117,6 +120,39 @@ export interface Database {
           due_date?: string | null
           position?: number
           list_id?: string
+        }
+        Relationships: []
+      }
+      card_attachments: {
+        Row: {
+          id: string
+          card_id: string
+          name: string
+          url: string
+          size: number | null
+          mime_type: string | null
+          uploaded_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          card_id: string
+          name: string
+          url: string
+          size?: number | null
+          mime_type?: string | null
+          uploaded_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          card_id?: string
+          name?: string
+          url?: string
+          size?: number | null
+          mime_type?: string | null
+          uploaded_by?: string
+          created_at?: string
         }
         Relationships: []
       }

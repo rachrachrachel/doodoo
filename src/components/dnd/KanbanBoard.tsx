@@ -139,19 +139,33 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
       let destList: ListWithCards | undefined
 
       if (isColumnId(overId)) {
-        // Dropped over a column directly - resolve the actual list ID
         const resolvedId = resolveListId(overId)
         destList = resolvedId ? localLists.find((l) => l.id === resolvedId) : undefined
       } else {
-        // Dropped over another card - find which list that card belongs to
         destList = localLists.find((list) =>
           list.cards.some((c) => c.id === overId)
         )
       }
 
-      if (!destList || sourceList.id === destList.id) return
+      if (!destList) return
 
-      // Move card from source to destination optimistically in local state
+      // ── Same-column reorder ──────────────────────────────────────────────────
+      if (sourceList.id === destList.id) {
+        if (isColumnId(overId)) return  // hovering column header — nothing to do
+        setLocalLists((prev) => {
+          if (!prev) return prev
+          return prev.map((list) => {
+            if (list.id !== sourceList.id) return list
+            const activeIdx = list.cards.findIndex((c) => c.id === activeCardId)
+            const overIdx   = list.cards.findIndex((c) => c.id === overId)
+            if (activeIdx === -1 || overIdx === -1 || activeIdx === overIdx) return list
+            return { ...list, cards: arrayMove(list.cards, activeIdx, overIdx) }
+          })
+        })
+        return
+      }
+
+      // ── Cross-column move ────────────────────────────────────────────────────
       setLocalLists((prev) => {
         if (!prev) return prev
         const newLists = prev.map((list) => ({ ...list, cards: [...list.cards] }))
@@ -160,25 +174,15 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
         const dstListIdx = newLists.findIndex((l) => l.id === destList!.id)
         if (srcListIdx === -1 || dstListIdx === -1) return prev
 
-        // Remove card from source
-        const cardIdx = newLists[srcListIdx].cards.findIndex(
-          (c) => c.id === activeCardId
-        )
+        const cardIdx = newLists[srcListIdx].cards.findIndex((c) => c.id === activeCardId)
         if (cardIdx === -1) return prev
         const [movedCard] = newLists[srcListIdx].cards.splice(cardIdx, 1)
-
-        // Update the card's list_id
         const updatedCard = { ...movedCard, list_id: destList!.id }
 
-        // Insert into destination
         if (isColumnId(overId)) {
-          // Dropped on empty column or column itself - add to end
           newLists[dstListIdx].cards.push(updatedCard)
         } else {
-          // Insert at the position of the card we're hovering over
-          const overIdx = newLists[dstListIdx].cards.findIndex(
-            (c) => c.id === overId
-          )
+          const overIdx = newLists[dstListIdx].cards.findIndex((c) => c.id === overId)
           if (overIdx === -1) {
             newLists[dstListIdx].cards.push(updatedCard)
           } else {
@@ -206,9 +210,18 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
 
       // ---- Column reorder ----
       if (activeData?.type === 'column') {
-        if (active.id !== over.id && isColumnId(over.id)) {
+        // over.id can be a card ID if cursor lands on a card — resolve to the owning column
+        let destColumnId = over.id
+        if (!isColumnId(over.id)) {
+          const ownerList = sortedLists.find((l) =>
+            l.cards.some((c) => c.id === over.id)
+          )
+          if (ownerList) destColumnId = ownerList.id
+        }
+
+        if (active.id !== destColumnId && isColumnId(destColumnId)) {
           const oldIndex = sortedLists.findIndex((l) => l.id === active.id)
-          const newIndex = sortedLists.findIndex((l) => l.id === over.id)
+          const newIndex = sortedLists.findIndex((l) => l.id === destColumnId)
 
           if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
             const reordered = arrayMove(sortedLists, oldIndex, newIndex)
@@ -249,29 +262,23 @@ export function KanbanBoard({ board }: KanbanBoardProps) {
 
           // Handle within-same-list reorder
           if (currentList.id === fromListId) {
-            // Check if it's over another card in the same list
-            if (over.id !== active.id && !isColumnId(over.id)) {
-              const overIdx = cardsInOrder.findIndex((c) => c.id === over.id)
-              const activeIdx = cardsInOrder.findIndex(
-                (c) => c.id === activeCardId
-              )
+            const newIdx = cardsInOrder.findIndex((c) => c.id === activeCardId)
+            // Compare against original board order to detect real change
+            const originalOrder = board.lists
+              .find((l) => l.id === fromListId)
+              ?.cards.slice()
+              .sort((a, b) => a.position - b.position) ?? []
+            const originalIdx = originalOrder.findIndex((c) => c.id === activeCardId)
 
-              if (
-                overIdx !== -1 &&
-                activeIdx !== -1 &&
-                overIdx !== activeIdx
-              ) {
-                // Persist: move to same list at new position
-                setActiveItem(null)
-                setLocalLists(null)
-                originalListIdRef.current = null
-                await moveCard(activeCardId, fromListId, fromListId, overIdx)
-                await fetchBoard(board.id)
-                return
-              }
+            if (newIdx !== -1 && newIdx !== originalIdx) {
+              setActiveItem(null)
+              setLocalLists(null)
+              originalListIdRef.current = null
+              await moveCard(activeCardId, fromListId, fromListId, newIdx)
+              await fetchBoard(board.id)
+              return
             }
 
-            // Dropped in same position - no-op
             setActiveItem(null)
             setLocalLists(null)
             originalListIdRef.current = null

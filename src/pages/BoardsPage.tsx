@@ -5,6 +5,7 @@ import { useBoards } from '@/hooks/useBoard'
 import { useBoardStore } from '@/stores/boardStore'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/Button'
+import { BoardIconDisplay } from '@/components/boards/BoardIconPicker'
 
 export function BoardsPage() {
   const { boards, isLoading } = useBoards()
@@ -79,6 +80,11 @@ export function BoardsPage() {
               style={{ backgroundColor: board.cover_color }}
               onClick={() => confirmingDeleteId !== board.id && navigate(`/board/${board.id}`)}
             >
+              {board.icon && (
+                <div className="mb-2">
+                  <BoardIconDisplay iconKey={board.icon} size={40} />
+                </div>
+              )}
               <h3 className="font-display text-xl text-ink mb-1">{board.title}</h3>
               {board.description && (
                 <p className="font-body text-sm text-ink/60 line-clamp-2">{board.description}</p>

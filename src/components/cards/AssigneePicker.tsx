@@ -45,15 +45,41 @@ export function AssigneePicker({
     if (loadingId) return
     setLoadingId(member.id)
 
+    const removing = isAssigned(member.id)
+
+    // Optimistic update — refleja el cambio de inmediato sin esperar fetchBoard
+    useBoardStore.setState((s) => {
+      if (!s.currentBoard) return s
+      return {
+        currentBoard: {
+          ...s.currentBoard,
+          lists: s.currentBoard.lists.map((l) => ({
+            ...l,
+            cards: l.cards.map((c) => {
+              if (c.id !== cardId) return c
+              return {
+                ...c,
+                assignees: removing
+                  ? c.assignees.filter((a) => a.id !== member.id)
+                  : [...c.assignees, member],
+              }
+            }),
+          })),
+        },
+      }
+    })
+
     try {
-      if (isAssigned(member.id)) {
+      if (removing) {
         await removeAssignee(cardId, member.id)
       } else {
         await addAssignee(cardId, member.id)
       }
-      await useBoardStore.getState().fetchBoard(boardId)
+      useBoardStore.getState().fetchBoard(boardId)
     } catch (err) {
       console.error(err)
+      // Revertir en caso de error
+      useBoardStore.getState().fetchBoard(boardId)
     } finally {
       setLoadingId(null)
     }

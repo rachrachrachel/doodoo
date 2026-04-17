@@ -199,31 +199,39 @@ export function KanbanColumn({ list, boardId, dragHandleProps }: KanbanColumnPro
         className="flex-shrink-0 h-full"
       >
         <div
-          className="bg-surface rounded-card shadow-card h-full min-h-[200px] flex flex-col items-center pt-3 pb-4 cursor-pointer"
+          className="bg-surface rounded-card shadow-card h-full min-h-[200px] flex flex-col items-center pt-3 pb-4"
           style={{ borderTop: `3px solid ${list.color}` }}
-          onClick={() => toggleListCollapse(list.id)}
         >
-          <ChevronRight size={16} className="text-ink/40 mb-3 flex-shrink-0" />
-          <div className="flex-1 flex items-center">
-            <span
-              className="font-display text-sm text-ink whitespace-nowrap"
-              style={{
-                writingMode: 'vertical-rl',
-                textOrientation: 'mixed',
-              }}
+          {/* Drag handle for collapsed mode */}
+          {dragHandleProps && (
+            <button
+              {...dragHandleProps}
+              className="p-1 rounded-lg text-ink/40 hover:text-ink/70 cursor-grab active:cursor-grabbing transition-colors duration-hover flex-shrink-0 mb-1"
+              aria-label="Arrastrar lista"
             >
-              {list.title}
-            </span>
-          </div>
-          <span
-            className="font-body text-xs text-ink/40 mt-3 flex-shrink-0"
-            style={{
-              writingMode: 'vertical-rl',
-              textOrientation: 'mixed',
-            }}
+              <GripVertical size={14} />
+            </button>
+          )}
+          <button
+            className="flex-1 flex flex-col items-center gap-2 py-1 w-full cursor-pointer"
+            onClick={() => toggleListCollapse(list.id)}
           >
-            {cardLabel}
-          </span>
+            <ChevronRight size={16} className="text-ink/40 flex-shrink-0" />
+            <div className="flex-1 flex items-center">
+              <span
+                className="font-display text-sm text-ink whitespace-nowrap"
+                style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+              >
+                {list.title}
+              </span>
+            </div>
+            <span
+              className="font-body text-xs text-ink/40 flex-shrink-0"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+            >
+              {cardLabel}
+            </span>
+          </button>
         </div>
       </motion.div>
     )
@@ -248,7 +256,7 @@ export function KanbanColumn({ list, boardId, dragHandleProps }: KanbanColumnPro
           {dragHandleProps && (
             <button
               {...dragHandleProps}
-              className="p-1 rounded-lg text-ink/20 hover:text-ink/60 cursor-grab active:cursor-grabbing transition-colors duration-hover flex-shrink-0"
+              className="p-1 rounded-lg text-ink/35 hover:text-ink/70 cursor-grab active:cursor-grabbing transition-colors duration-hover flex-shrink-0"
               aria-label="Arrastrar lista"
             >
               <GripVertical size={16} />

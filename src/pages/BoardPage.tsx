@@ -12,6 +12,7 @@ import { ActivityPanel } from '@/components/activity/ActivityPanel'
 import { FilterBar } from '@/components/filters/FilterBar'
 import { AvatarGroup } from '@/components/ui/Avatar'
 import { Button } from '@/components/ui/Button'
+import { BoardIconPicker } from '@/components/boards/BoardIconPicker'
 
 export function BoardPage() {
   const { boardId } = useParams<{ boardId: string }>()
@@ -30,13 +31,14 @@ export function BoardPage() {
   const titleInputRef = useRef<HTMLInputElement>(null)
   const descInputRef = useRef<HTMLInputElement>(null)
 
-  // Sync drafts when board data loads
+  // Sync drafts only on initial load (not on every board change to avoid resetting mid-edit)
   useEffect(() => {
-    if (board) {
-      setTitleDraft(board.title)
-      setDescDraft(board.description ?? '')
-    }
-  }, [board])
+    if (board && !isEditingTitle) setTitleDraft(board.title)
+  }, [board?.title])
+
+  useEffect(() => {
+    if (board && !isEditingDesc) setDescDraft(board.description ?? '')
+  }, [board?.description])
 
   // Abrir card desde ?card=<id> (deep link desde widget)
   useEffect(() => {
@@ -99,7 +101,7 @@ export function BoardPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading && !board) {
     return (
       <div className="p-8 flex items-center gap-3">
         <div className="w-5 h-5 border-2 border-accent-yellow border-t-transparent rounded-full animate-spin" />
@@ -120,23 +122,29 @@ export function BoardPage() {
       <div className="px-6 pt-6 pb-4 flex-shrink-0">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            {isEditingTitle ? (
-              <input
-                ref={titleInputRef}
-                value={titleDraft}
-                onChange={(e) => setTitleDraft(e.target.value)}
-                onBlur={handleTitleSave}
-                onKeyDown={handleTitleKeyDown}
-                className="font-display text-3xl text-ink bg-transparent outline-none border-b-2 border-accent-yellow/60 w-full max-w-md"
+            <div className="flex items-center gap-3">
+              <BoardIconPicker
+                icon={board.icon ?? null}
+                onChange={(icon) => boardId && updateBoard(boardId, { icon })}
               />
-            ) : (
-              <h2
-                onClick={() => setIsEditingTitle(true)}
-                className="font-display text-3xl text-ink cursor-pointer hover:text-ink/80 transition-colors duration-hover"
-              >
-                {board.title}
-              </h2>
-            )}
+              {isEditingTitle ? (
+                <input
+                  ref={titleInputRef}
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={handleTitleKeyDown}
+                  className="font-display text-3xl text-ink bg-transparent outline-none border-b-2 border-accent-yellow/60 w-full max-w-md"
+                />
+              ) : (
+                <h2
+                  onClick={() => setIsEditingTitle(true)}
+                  className="font-display text-3xl text-ink cursor-pointer hover:text-ink/80 transition-colors duration-hover"
+                >
+                  {board.title}
+                </h2>
+              )}
+            </div>
 
             {isEditingDesc ? (
               <input

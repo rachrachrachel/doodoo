@@ -68,7 +68,7 @@ function EditRow({ label, boardId, onDone }: EditRowProps) {
   }
 
   return (
-    <div className="space-y-2 py-2">
+    <div className="space-y-3 py-3 border-b border-ink/5">
       <input
         autoFocus
         value={name}
@@ -78,13 +78,13 @@ function EditRow({ label, boardId, onDone }: EditRowProps) {
           if (e.key === 'Escape') onDone()
         }}
         className={cn(
-          'w-full bg-cream rounded-xl px-3 py-1.5 font-body text-sm text-ink',
+          'w-full bg-cream rounded-xl px-3 py-2 font-body text-sm text-ink',
           'outline-none border-2 border-transparent focus:border-accent-yellow/40',
           'transition-colors duration-[100ms]'
         )}
         placeholder="Nombre de etiqueta"
       />
-      <div className="flex gap-1.5 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
         {PRESET_COLORS.map((c) => (
           <ColorSwatch
             key={c}
@@ -100,7 +100,7 @@ function EditRow({ label, boardId, onDone }: EditRowProps) {
           onClick={handleSave}
           disabled={saving || !name.trim()}
           className={cn(
-            'px-3 py-1 rounded-xl font-body text-xs text-ink bg-accent-yellow',
+            'px-4 py-1.5 rounded-xl font-body text-xs text-ink bg-accent-yellow',
             'hover:bg-accent-yellow/80 transition-colors duration-[100ms]',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
@@ -110,7 +110,7 @@ function EditRow({ label, boardId, onDone }: EditRowProps) {
         <button
           type="button"
           onClick={onDone}
-          className="px-3 py-1 rounded-xl font-body text-xs text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors duration-[100ms]"
+          className="px-4 py-1.5 rounded-xl font-body text-xs text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors duration-[100ms]"
         >
           Cancelar
         </button>
@@ -172,7 +172,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
       exit={{ opacity: 0, scale: 0.96, y: -8 }}
       transition={{ duration: 0.15 }}
       className={cn(
-        'w-72 bg-surface rounded-card shadow-card-hover',
+        'w-full bg-surface rounded-card shadow-card-hover',
         'border border-ink/5 overflow-hidden'
       )}
     >
@@ -190,7 +190,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
       </div>
 
       {/* Label list */}
-      <div className="px-3 py-2 max-h-64 overflow-y-auto">
+      <div className="px-4 py-2 max-h-72 overflow-y-auto">
         {boardLabels.length === 0 && !isCreating && (
           <p className="font-body text-sm text-ink/30 py-2 text-center">
             No hay etiquetas aun
@@ -259,7 +259,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
       </div>
 
       {/* Create new */}
-      <div className="border-t border-ink/5 px-3 py-2">
+      <div className="border-t border-ink/5 px-4 py-3">
         <AnimatePresence initial={false}>
           {isCreating ? (
             <motion.div
@@ -268,7 +268,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              className="overflow-hidden space-y-2 py-1"
+              className="overflow-hidden space-y-3"
             >
               <input
                 autoFocus
@@ -283,13 +283,13 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
                   }
                 }}
                 className={cn(
-                  'w-full bg-cream rounded-xl px-3 py-1.5 font-body text-sm text-ink',
+                  'w-full bg-cream rounded-xl px-3 py-2 font-body text-sm text-ink',
                   'outline-none border-2 border-transparent focus:border-accent-yellow/40',
                   'transition-colors duration-[100ms]'
                 )}
                 placeholder="Nombre de etiqueta"
               />
-              <div className="flex gap-1.5 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 {PRESET_COLORS.map((c) => (
                   <ColorSwatch
                     key={c}
@@ -305,7 +305,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
                   onClick={handleCreate}
                   disabled={savingNew || !newName.trim()}
                   className={cn(
-                    'px-3 py-1 rounded-xl font-body text-xs text-ink bg-accent-yellow',
+                    'px-4 py-1.5 rounded-xl font-body text-xs text-ink bg-accent-yellow',
                     'hover:bg-accent-yellow/80 transition-colors duration-[100ms]',
                     'disabled:opacity-50 disabled:cursor-not-allowed'
                   )}
@@ -319,7 +319,7 @@ export function LabelManager({ boardId, boardLabels, onClose }: LabelManagerProp
                     setNewName('')
                     setNewColor(PRESET_COLORS[0])
                   }}
-                  className="px-3 py-1 rounded-xl font-body text-xs text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors duration-[100ms]"
+                  className="px-4 py-1.5 rounded-xl font-body text-xs text-ink/60 hover:text-ink hover:bg-ink/5 transition-colors duration-[100ms]"
                 >
                   Cancelar
                 </button>
